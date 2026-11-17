@@ -14,12 +14,12 @@ function ensureAdmin(el, render) {
 
 // =============================================================== PENGGUNA & PENGATURAN
 A.tab.adm = A.tab.adm || 'akun';
-const TABS = [['akun', 'Akun & hak akses', 'badge'], ['sekolah', 'Sekolah & siklus', 'school'], ['ambang', 'Ambang & parameter', 'rule'], ['integrasi', 'WhatsApp & notifikasi', 'chat'], ['audit', 'Log audit', 'history'], ['sistem', 'Sistem & data', 'dashboard_customize']];
+const TABS = [['akun', 'Akun & hak akses', 'badge'], ['sekolah', 'Sekolah & siklus', 'school'], ['ambang', 'Ambang & parameter', 'rule'], ['integrasi', 'WhatsApp & notifikasi', 'chat'], ['sinkron', 'Sinkron SIPERENCANA', 'sync'], ['audit', 'Log audit', 'history'], ['sistem', 'Sistem & data', 'dashboard_customize']];
 A.page('pengguna', { render(el) {
   ensureAdmin(el, () => {
     el.innerHTML = head('Administrasi', 'Kelola Pengguna & Pengaturan', 'Hak akses (RBAC), data sekolah, parameter mutu, integrasi WhatsApp, dan audit sistem.') +
       `<div class="tabs" role="tablist">${TABS.map(t => `<button class="${A.tab.adm === t[0] ? 'on' : ''}" data-act="adm-tab" data-t="${t[0]}">${ic(t[2])} ${t[1]}</button>`).join('')}</div><div id="adm-body"></div>`;
-    ({ akun: tabAkun, sekolah: tabSekolah, ambang: tabAmbang, integrasi: tabIntegrasi, audit: tabAudit, sistem: tabSistem })[A.tab.adm]($('#adm-body', el));
+    ({ akun: tabAkun, sekolah: tabSekolah, ambang: tabAmbang, integrasi: tabIntegrasi, sinkron: tabSinkron, audit: tabAudit, sistem: tabSistem })[A.tab.adm]($('#adm-body', el));
   });
 } });
 A.acts['adm-tab'] = el => { A.tab.adm = el.dataset.t; A.rerender('pengguna'); };
@@ -87,6 +87,49 @@ A.forms['set-notif'] = async f => {
 Object.assign(A.acts, {
   'wa-tes': el => write(el, 'wa.tes', { nomor: $('#wa-tes').value }), 'em-tes': el => write(el, 'email.tes', { email: $('#em-tes').value }),
   'wa-dev': async el => { const r = await busy(el, () => api('wa.perangkat')); r.success ? modal({ title: 'Perangkat WhatsApp', size: 'sm', foot: '<button class="btn" data-close>Tutup</button>', body: `<dl class="kvs"><dt>Nomor</dt><dd>${esc(r.data.nomor)}</dd><dt>Status</dt><dd>${esc(r.data.status)}</dd><dt>Paket</dt><dd>${esc(r.data.paket)}</dd><dt>Kuota</dt><dd>${esc(r.data.kuota)}</dd><dt>Berlaku s.d.</dt><dd>${esc(r.data.kedaluwarsa)}</dd></dl>` }) : toast(r.message, 'bad'); }
+});
+
+
+// ---- Sinkron SIPERENCANA (satu arah: SIPERENCANA → Pemetaan Mutu)
+function tabSinkron(b) {
+  b.innerHTML = A.skel(3);
+  api('sinkron.config').then(r => {
+    if (!r.success) { b.innerHTML = `<div class="note bad">${ic('error')}<div>${esc(r.message)}</div></div>`; return; }
+    const c = r.data, k = c.konfig, t = c.terakhir;
+    b.innerHTML = `<div class="note" style="margin-bottom:16px">${ic('info')}<div><b>Satu arah: SIPERENCANA → SPMI BOSKIN.</b> Data Pemetaan Mutu ditarik dari SIPERENCANA. Isian SPMI (prioritas, rekomendasi, akar masalah yang sudah ada) <b>tidak ditimpa</b>. Urutan aman: <b>Simpan → Uji koneksi → Pindai (dry-run) → Jalankan</b>.</div></div>
+    ${t ? `<div class="note ${t.ok ? 'ok' : 'bad'}" style="margin-bottom:16px">${ic(t.ok ? 'check_circle' : 'error')}<div>Sinkron terakhir ${TZ_FMT(t.at)} oleh ${esc(t.oleh)}: ${t.ok ? `${t.tambah} baru, ${t.ubah} diperbarui, ${t.sama} tidak berubah${t.galat ? `, ${t.galat} baris dilewati` : ''}.` : esc(t.pesan)}</div></div>` : ''}
+    <form class="stack" data-form="sip-simpan" novalidate><div class="grid g2">
+    <div class="card stack"><h3>${ic('lock')} Akun integrasi SIPERENCANA</h3>
+      ${field('URL Web App SIPERENCANA (/exec)', `<input class="input" name="url" placeholder="${c.url_ada ? 'Tersimpan (' + esc(c.url_mask) + ') — kosongkan bila tidak diubah' : 'https://script.google.com/macros/s/…/exec'}" autocomplete="off">`, { hint: 'Hanya alamat script.google.com yang diterima.' })}
+      ${field('Username akun integrasi', `<input class="input" name="user" value="${esc(c.user)}" autocomplete="off">`)}
+      ${field('Kata sandi', `<input class="input" name="pass" type="password" autocomplete="new-password" placeholder="${c.pass_ada ? 'Tersimpan — kosongkan bila tidak diubah' : ''}">`, { hint: 'Disimpan di server (Script Properties), tidak pernah ditampilkan lagi.' })}
+      <div class="note warn">${ic('warning')}<div>Pakai akun <b>khusus integrasi</b> di SIPERENCANA dengan hak baca saja, dan pastikan <b>tidak</b> berstatus "wajib ganti sandi".</div></div></div>
+    <div class="card stack"><h3>${ic('rule')} Sumber data</h3><div class="form-grid">
+      ${field('Aksi sumber (baca saja)', `<input class="input" name="aksi" value="${esc(k.aksi)}" placeholder="rekom.daftar">`, { hint: 'Contoh: rekom.daftar, arkas.ringkasan.' })}
+      ${field('Jalur data', `<input class="input" name="jalur" value="${esc(k.jalur)}" placeholder="kosong = otomatis">`, { hint: 'Letak daftar baris di respons, mis. rows.' })}
+      ${field('Parameter (JSON)', `<textarea class="textarea" name="data" style="min-height:64px;font-family:var(--f-mono);font-size:13px">${esc(JSON.stringify(k.data || {}))}</textarea>`, { full: 1 })}
+      ${field('Skala nilai', `<select class="select" name="skala">${selOpts([{ v: 'persen', l: 'Persen (0–100)' }, { v: 'pecahan', l: 'Pecahan (0–1)' }], k.skala)}</select>`)}
+      ${field('Periode bila sumber kosong', `<select class="select" name="periodeDefault">${selOpts(Sel.periodes(), k.periodeDefault, '— periode aktif —')}</select>`)}
+      <label class="check full"><input type="checkbox" name="otomatis" ${k.otomatis ? 'checked' : ''}><span>Sinkron otomatis setiap hari pukul 06.00</span></label></div></div></div>
+    <div class="card flat"><div class="card-h"><h3>${ic('table_rows')} Pemetaan kolom (nama kolom di SIPERENCANA → data SPMI)</h3></div><datalist id="sip-kol"></datalist><div class="twrap"><table><thead><tr><th>Data di SPMI BOSKIN</th><th>Nama kolom di SIPERENCANA</th></tr></thead><tbody>${c.field.map(f => `<tr><td><b>${esc(f[1])}</b> ${f[2] ? '<span class="badge b-bad">wajib</span>' : ''}</td><td><input class="input" style="min-height:40px" name="peta_${f[0]}" list="sip-kol" value="${esc(k.peta[f[0]])}" autocomplete="off"></td></tr>`).join('')}</tbody></table></div></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" type="submit">${ic('save')} Simpan</button><button type="button" class="btn" data-act="sip-uji">${ic('sync')} Uji koneksi</button><button type="button" class="btn" data-act="sip-pindai">${ic('search')} Pindai (dry-run)</button><button type="button" class="btn gold" id="sip-jalan" data-act="sip-jalan" disabled>${ic('check')} Jalankan sinkron</button></div></form><div id="sip-out" style="margin-top:16px"></div>`;
+  });
+}
+A.forms['sip-simpan'] = async f => {
+  const d = A.formData(f), peta = {}; Object.keys(d).forEach(x => { if (x.indexOf('peta_') === 0) peta[x.slice(5)] = d[x]; });
+  const r = await write($('[type=submit]', f), 'sinkron.simpan', { url: d.url, user: d.user, pass: d.pass, konfig: { aksi: d.aksi, data: d.data, jalur: d.jalur, skala: d.skala, periodeDefault: d.periodeDefault, otomatis: d.otomatis, peta } }, 'Pengaturan sinkron disimpan.');
+  if (r.success) A.rerender('pengguna');
+};
+const sipTabel = rows => { const k = [...new Set(rows.flatMap(r => Object.keys(r || {})))].slice(0, 8); return `<div class="twrap"><table><thead><tr>${k.map(x => `<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${k.map(x => `<td>${esc(typeof r[x] === 'object' ? JSON.stringify(r[x]) : r[x])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`; };
+Object.assign(A.acts, {
+  'sip-uji': async el => { const r = await busy(el, () => api('sinkron.uji', {}, { timeout: 90000 })); const o = $('#sip-out'); if (!r.success) { o.innerHTML = `<div class="note bad">${ic('error')}<div>${esc(r.message)}</div></div>`; return; }
+    $('#sip-kol').innerHTML = r.data.kolom.map(x => `<option value="${esc(x)}">`).join(''); o.innerHTML = `<div class="note ok">${ic('check_circle')}<div>Terhubung: <b>${r.data.jumlah}</b> baris. Kolom tersedia: <span class="mono">${esc(r.data.kolom.join(', '))}</span></div></div><h4 style="margin:12px 0 8px">Contoh data mentah</h4>${sipTabel(r.data.contoh)}`; },
+  'sip-pindai': async el => { const r = await busy(el, () => api('sinkron.pindai', {}, { timeout: 90000 })); const o = $('#sip-out'); $('#sip-jalan').disabled = true; if (!r.success) { o.innerHTML = `<div class="note bad">${ic('error')}<div>${esc(r.message)}</div></div>`; return; } const d = r.data;
+    $('#sip-kol').innerHTML = d.kolom.map(x => `<option value="${esc(x)}">`).join('');
+    o.innerHTML = `<div class="grid g4" style="margin-bottom:16px">${kpi('Baris sumber', d.sumber, `${d.valid} valid`)}${kpi('Akan ditambah', d.tambah, 'data baru')}${kpi('Akan diperbarui', d.ubah, 'capaian/atribut berubah')}${kpi('Tidak berubah', d.sama, d.jumlahGalat ? d.jumlahGalat + ' baris bermasalah' : 'bersih')}</div>
+    ${d.peringatan.map(p => `<div class="note warn" style="margin-bottom:8px">${ic('warning')}<div>${esc(p)}</div></div>`).join('')}${d.jumlahGalat ? `<div class="note bad" style="margin-bottom:8px">${ic('error')}<div><b>${d.jumlahGalat} baris dilewati:</b><ul style="margin:4px 0 0;padding-left:18px">${d.galat.map(g => `<li>${esc(g)}</li>`).join('')}</ul></div></div>` : ''}
+    <h4 style="margin:12px 0 8px">Contoh hasil pemetaan</h4>${d.contoh.length ? sipTabel(d.contoh) : '<p class="muted small">Tidak ada baris valid. Periksa pemetaan kolom.</p>'}`; $('#sip-jalan').disabled = !(d.tambah + d.ubah); if (!(d.tambah + d.ubah) && d.valid) toast('Tidak ada perubahan: data sudah sama.', 'ok'); },
+  'sip-jalan': async el => { if (!await A.confirmBox('Terapkan hasil pindai ke Pemetaan Mutu? Isian SPMI yang sudah ada tidak ditimpa.', 'Jalankan sinkron')) return; const r = await busy(el, () => api('sinkron.jalankan', {}, { timeout: 120000 })); if (!r.success) return toast(r.message, 'bad'); toast(r.message, 'ok'); el.disabled = true; A.sync(); A.rerender('pengguna'); }
 });
 
 // ---- Audit
