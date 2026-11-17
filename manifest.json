@@ -1,0 +1,17 @@
+{
+  "name": "SPMI BOSKIN 2026",
+  "short_name": "SPMI BOSKIN",
+  "description": "Sistem Penjaminan Mutu Internal berbasis Rapor Pendidikan",
+  "lang": "id",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f9f9f9",
+  "theme_color": "#0B3A8F",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

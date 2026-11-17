@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SPMI BOSKIN 2026</title>
+<meta name="description" content="Sistem Penjaminan Mutu Internal berbasis Rapor Pendidikan">
+<meta name="theme-color" content="#0B3A8F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SPMI BOSKIN">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="netbar" role="status">Anda sedang offline — data tersimpan terakhir ditampilkan</div>
+
+<section id="login" aria-label="Masuk">
+  <form class="login-card" data-form="login" autocomplete="on" novalidate>
+    <div class="brand-mark" id="login-logo"></div>
+    <div class="center">
+      <div class="eyebrow">Sistem Penjaminan Mutu Internal</div>
+      <h1 style="font-size:30px;line-height:36px">SPMI BOSKIN 2026</h1>
+      <p class="muted small" style="margin:8px 0 12px">Sistem Penjaminan Mutu Internal Berbasis Rapor Pendidikan</p>
+      <span class="badge b-info">Permendikbudristek No. 28/2021 &amp; No. 9/2022</span>
+    </div>
+    <div class="stack" style="margin-top:24px">
+      <div class="field"><label for="lg-user" class="req">Username</label><input class="input" id="lg-user" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" placeholder="mis. kepala.sekolah"></div>
+      <div class="field"><label for="lg-pass" class="req">Kata sandi</label>
+        <div class="input-wrap"><input class="input" id="lg-pass" name="password" type="password" autocomplete="current-password" style="padding-right:48px">
+        <button type="button" class="btn ghost icon" data-act="toggle-pass" aria-label="Tampilkan kata sandi"></button></div></div>
+      <div id="lg-err" class="note bad hide" role="alert"></div>
+      <button class="btn primary" id="lg-btn" type="submit" style="width:100%">Masuk ke sistem</button>
+      <p class="center small muted">Lupa kata sandi? <b>Hubungi Admin sekolah</b></p>
+      <button type="button" class="btn sm hide" id="lg-install" data-act="install">Pasang aplikasi di perangkat ini</button>
+    </div>
+  </form>
+  <div class="login-info">
+    <div><b>Ketentuan akses</b>Hanya warga sekolah terdaftar (±30 akun) yang dapat mengakses portal data SPMI BOSKIN.</div>
+    <div><b>Notifikasi WhatsApp</b>Pengingat jadwal monev &amp; SK dikirim ke nomor terverifikasi.</div>
+  </div>
+</section>
+
+<div id="shell">
+  <aside class="side" id="side" aria-label="Menu utama">
+    <div class="side-h"><div class="brand-mark" id="side-logo"></div><div><b>SPMI BOSKIN</b><span>PORTAL 2026</span></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-f">
+      <button class="btn sm hide" id="side-install" data-act="install"></button>
+      <button class="btn sm" data-act="ubah-sandi"></button>
+      <button class="btn sm" data-act="logout"></button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" data-act="menu-close"></div>
+  <header class="top">
+    <button class="btn ghost icon menu-btn" data-act="menu-open" aria-label="Buka menu"></button>
+    <div class="ttl" id="top-title"></div>
+    <div class="bell" id="bell"><button class="btn ghost icon" data-act="bell" aria-label="Pemberitahuan"></button><span class="dot hide" id="bell-n"></span><div class="pop hide" id="bell-pop"></div></div>
+    <div class="user-chip" data-act="ubah-sandi" title="Ubah kata sandi" role="button" tabindex="0"><div class="u"><b id="u-name"></b><span id="u-role"></span></div><div class="avatar" id="u-av"></div></div>
+  </header>
+  <main id="host"></main>
+  <nav class="bnav" id="bnav" aria-label="Navigasi cepat"></nav>
+</div>
+<div id="modal-root"></div>
+<div id="toasts" aria-live="polite"></div>
+
+<script src="js/config.js" defer></script>
+<script src="js/icons.js" defer></script>
+<script src="js/core.js" defer></script>
+<script src="js/pages-1.js" defer></script>
+<script src="js/pages-2.js" defer></script>
+<script src="js/pages-admin.js" defer></script>
+<script src="js/pwa.js" defer></script>
+</body>
+</html>
