@@ -101,9 +101,12 @@ function tabSinkron(b) {
     <form class="stack" data-form="sip-simpan" novalidate><div class="grid g2">
     <div class="card stack"><h3>${ic('lock')} Akun integrasi SIPERENCANA</h3>
       ${field('URL Web App SIPERENCANA (/exec)', `<input class="input" name="url" placeholder="${c.url_ada ? 'Tersimpan (' + esc(c.url_mask) + ') — kosongkan bila tidak diubah' : 'https://script.google.com/macros/s/…/exec'}" autocomplete="off">`, { hint: 'Hanya alamat script.google.com yang diterima.' })}
-      ${field('Username akun integrasi', `<input class="input" name="user" value="${esc(c.user)}" autocomplete="off">`)}
-      ${field('Kata sandi', `<input class="input" name="pass" type="password" autocomplete="new-password" placeholder="${c.pass_ada ? 'Tersimpan — kosongkan bila tidak diubah' : ''}">`, { hint: 'Disimpan di server (Script Properties), tidak pernah ditampilkan lagi.' })}
-      <div class="note warn">${ic('warning')}<div>Pakai akun <b>khusus integrasi</b> di SIPERENCANA dengan hak baca saja, dan pastikan <b>tidak</b> berstatus "wajib ganti sandi".</div></div></div>
+      ${field('Username akun integrasi', `<input class="input" name="user" value="${esc(c.user)}" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore>`)}
+      ${field('Kata sandi', `<input class="input" name="pass" type="password" autocomplete="new-password" data-lpignore="true" data-1p-ignore placeholder="${c.pass_ada ? 'Tersimpan — kosongkan bila tidak diubah' : ''}">`, { hint: 'Disimpan di server (Script Properties), tidak pernah ditampilkan lagi.' })}
+      <details><summary class="small" style="cursor:pointer;font-weight:600;min-height:32px">Lanjutan: nama field login</summary><div class="stack" style="margin-top:8px"><p class="small muted">Biarkan kosong dulu. Isi hanya bila login manual di SIPERENCANA berhasil tetapi dari sini gagal: SPMI mengirim beberapa nama umum sekaligus (username, user, password, sandi, pass, kata_sandi, metode=sandi).</p>
+      <div class="form-grid">${field('Nama field username', `<input class="input" name="login_userKey" value="${esc((k.login || {}).userKey)}" placeholder="mis. identitas" autocomplete="off">`)}${field('Nama field sandi', `<input class="input" name="login_passKey" value="${esc((k.login || {}).passKey)}" placeholder="mis. katasandi" autocomplete="off">`)}</div>
+      ${field('Parameter tambahan login (JSON)', `<input class="input" name="login_extra" value="${esc(JSON.stringify((k.login || {}).extra || {}) === '{}' ? '' : JSON.stringify((k.login || {}).extra))}" placeholder='{"metode":"sandi"}' autocomplete="off">`)}</div></details>
+      <div class="note warn">${ic('warning')}<div>Pakai akun <b>khusus integrasi</b> di SIPERENCANA dengan hak baca saja, dan pastikan <b>tidak</b> berstatus "wajib ganti sandi". Satu kali Uji koneksi = satu percobaan login; jangan menekan berulang-ulang agar akun tidak terkunci.</div></div></div>
     <div class="card stack"><h3>${ic('rule')} Sumber data</h3><div class="form-grid">
       ${field('Aksi sumber (baca saja)', `<input class="input" name="aksi" value="${esc(k.aksi)}" placeholder="rekom.daftar">`, { hint: 'Contoh: rekom.daftar, arkas.ringkasan.' })}
       ${field('Jalur data', `<input class="input" name="jalur" value="${esc(k.jalur)}" placeholder="kosong = otomatis">`, { hint: 'Letak daftar baris di respons, mis. rows.' })}
@@ -117,7 +120,7 @@ function tabSinkron(b) {
 }
 A.forms['sip-simpan'] = async f => {
   const d = A.formData(f), peta = {}; Object.keys(d).forEach(x => { if (x.indexOf('peta_') === 0) peta[x.slice(5)] = d[x]; });
-  const r = await write($('[type=submit]', f), 'sinkron.simpan', { url: d.url, user: d.user, pass: d.pass, konfig: { aksi: d.aksi, data: d.data, jalur: d.jalur, skala: d.skala, periodeDefault: d.periodeDefault, otomatis: d.otomatis, peta } }, 'Pengaturan sinkron disimpan.');
+  const r = await write($('[type=submit]', f), 'sinkron.simpan', { url: d.url, user: d.user, pass: d.pass, konfig: { aksi: d.aksi, data: d.data, jalur: d.jalur, skala: d.skala, periodeDefault: d.periodeDefault, otomatis: d.otomatis, peta, login: { userKey: d.login_userKey, passKey: d.login_passKey, extra: d.login_extra } } }, 'Pengaturan sinkron disimpan.');
   if (r.success) A.rerender('pengguna');
 };
 const sipTabel = rows => { const k = [...new Set(rows.flatMap(r => Object.keys(r || {})))].slice(0, 8); return `<div class="twrap"><table><thead><tr>${k.map(x => `<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${k.map(x => `<td>${esc(typeof r[x] === 'object' ? JSON.stringify(r[x]) : r[x])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`; };
