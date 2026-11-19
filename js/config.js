@@ -4,7 +4,7 @@
    Ini BUKAN rahasia (URL publik). Jangan tempel token/kata sandi di sini.
    ================================================================ */
 window.APP_CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbyn-2xKDhOeCTKE0bzw9ElJw3rkbvPcmlUZUCWTFWfUtJJmPsmQvU3gMrxc1IZvXLe3/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbziOnkPQJpDBbtFMoGr-k_DR5AK17-_sdIu7ViUcD4WwDBOspNtnEiZtDWgTbd_8sNj/exec',
   VERSI: '1.0.0',
   IDLE_MENIT: 60
 };
