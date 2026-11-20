@@ -2,7 +2,7 @@
    • Cangkang aplikasi (HTML/CSS/JS/ikon) di-cache → terbuka instan & tetap tampil saat offline.
    • Panggilan API ke Google Apps Script TIDAK pernah di-cache/dicegat (data selalu segar, token aman).
    • Naikkan VERSI setiap kali Anda mengubah berkas frontend agar pengguna mendapat pembaruan. */
-const VERSI = 'spmi-boskin-v1.1.3';
+const VERSI = 'spmi-boskin-v1.1.4';
 const SHELL = ['./', './index.html', './manifest.json', './css/app.css', './js/config.js', './js/icons.js', './js/core.js', './js/pages-1.js', './js/pages-2.js', './js/pages-admin.js', './js/pwa.js', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSI).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSI).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
